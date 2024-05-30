@@ -68,7 +68,7 @@ const questions = [
         name: 'projectTitle',
         message: 'What is the title of your project?',
     },
-    {+
+    {
         type: 'input',
         name: 'description',
         message: 'What is the description?',
@@ -81,10 +81,14 @@ const questions = [
 ];
 
 // TODO: Create a function to write README file
-function writeToFile(fileName, data) {}
+const writeToLog = (data) => {
+    fs.writeFile('readme.md', data, (err) => {
+        err ? console.error(err) : console.log('Log created!');
+    });
+};
 
 // TODO: Create a function to initialize app
-function init() {}++
+function init() {}
 
 // Function call to initialize app
 init();
