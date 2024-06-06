@@ -12,9 +12,28 @@ function renderLicenseSection(license) {}
 
 // TODO: Create a function to generate markdown for README
 function generateMarkdown(data) {
-  return `# ${data.title}
+    console.log('////////////// Here is data : ', data);
+    const readMeTemplate = `
+            
+            # ${data.nonRepeatingAnswers.projectTitle}
 
-`;
+            ## User Story
+
+            \`\`\`md
+            AS A developer
+            I WANT a README generator
+            SO THAT I can quickly create a professional README for a new project.            
+            \`\`\`
+
+            
+
+            ## Description
+            ${data.nonRepeatingAnswers.description}
+
+
+            
+            `;
+    console.log(readMeTemplate);
 }
 
 module.exports = generateMarkdown;

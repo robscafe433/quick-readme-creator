@@ -2,6 +2,7 @@
 const inquirer = require('inquirer');
 const fs = require('fs');
 const { log } = require('console');
+const generateMarkdown = require('./utils/generateMarkdown');
 
 //In case there are more than one prerequisites this function loops through until confirm is "no".
 let prerequisites = [];
@@ -199,29 +200,7 @@ function init() {
             // let nonRepeatingAnswers2 = [];
         })
         .then((data) => {
-            //
-            console.log('////////////// Here is data : ', data);
-            const readMeTemplate = `
-            
-            # ${data.nonRepeatingAnswers.projectTitle}
-
-            ## User Story
-
-            \`\`\`md
-            AS A developer
-            I WANT a README generator
-            SO THAT I can quickly create a professional README for a new project.            
-            \`\`\`
-
-            
-
-            ## Description
-            ${data.nonRepeatingAnswers.description}
-
-
-            
-            `;
-            console.log(readMeTemplate);
+            return generateMarkdown(data);
         });
 }
 
