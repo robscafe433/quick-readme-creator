@@ -2,17 +2,24 @@
 const inquirer = require('inquirer');
 const fs = require('fs');
 const { log } = require('console');
-const generateMarkdown = require('./utils/generateMarkdown');
+
+const { generateMarkdown } = require('./utils/generateMarkdown');
+
+const writeToReadmeMD = (data) => {
+    fs.writeFile('README.md', data, (err) => {
+        err ? console.error(err) : console.log('Success!!! , Log created!');
+    });
+};
 
 //In case there are more than one prerequisites this function loops through until confirm is "no".
-let prerequisites = [];
+let installationPrerequisites = [];
 let packagesNeededForApp = [];
-let tableOfContents = [];
+// let tableOfContents = [];
 
 let nonRepeatingAnswers1 = [];
 let nonRepeatingAnswers2 = [];
 
-// function that asks for prerequisite packages, example: node / npm
+let gitHubLink = '';
 
 function askPrerequisite() {
     return inquirer
@@ -32,37 +39,11 @@ function askPrerequisite() {
             },
         ])
         .then((answers) => {
-            prerequisites.push(answers.prerequisite);
+            installationPrerequisites.push(answers.prerequisite);
             if (answers.askAgain) {
                 return askPrerequisite();
             } else {
-                console.log(prerequisites);
-                return prerequisites;
-            }
-        });
-}
-function askTableOfContents() {
-    return inquirer
-        .prompt([
-            {
-                type: 'input',
-                name: 'tableOfContents',
-                message: 'Enter content for the table: ',
-            },
-            {
-                type: 'confirm',
-                name: 'askAgain',
-                message: 'Would you like to add more content?',
-                default: true,
-            },
-        ])
-        .then((answers) => {
-            tableOfContents.push(answers.tableOfContents);
-            if (answers.askAgain) {
-                return askTableOfContents();
-            } else {
-                console.log(tableOfContents);
-                return tableOfContents;
+                return installationPrerequisites;
             }
         });
 }
@@ -88,10 +69,13 @@ function askPackagesNeededForApp() {
             if (answers.askAgain) {
                 return askPackagesNeededForApp();
             } else {
-                console.log(packagesNeededForApp);
                 return packagesNeededForApp;
             }
         });
+}
+
+function gitubProfileLink(githubName) {
+    gitHubLink = `https://github.com/${username}`;
 }
 
 // TODO: Create an array of questions for user input
@@ -101,16 +85,18 @@ const questionsFirstPart = [
         name: 'projectTitle',
         message: 'What is the title of your project?',
     },
+    // description section: The purpose of a description in a README.md file is
+    //to provide a clear, concise summary of the project.
+    //It should explain what the project does, its features,
+    // and possibly what problems it solves or its intended use.
+    //The description helps users, contributors,
+    //and potential users to quickly understand the
+    //essence of the project and what it can do for them.
     {
         type: 'input',
         name: 'description',
-        message: 'What is the description?',
+        message: 'Description',
     },
-    // {
-    //     type: 'input',
-    //     name: 'tableOfContents',
-    //     message: 'Enter table of contents?',
-    // },
 ];
 
 const questionsSecondPart = [
@@ -120,22 +106,20 @@ const questionsSecondPart = [
         message: 'What is the usage?',
     },
     {
-        type: 'input',
+        type: 'list',
         name: 'license',
-        message: 'What are the licenses?',
+        message: 'Choose a license:',
+        choices: ['MIT', 'GPLv3', 'Apache 2.0'],
     },
     {
         type: 'input',
-        name: 'contributing',
-        message: 'Do you wish to contribute? Enter your email:',
+        name: 'email',
+        message: 'Enter email to be reached for questions:',
     },
-    /// add readme.md section on tesitng, note: testing is not an input.
-    // The "Tests" section in a README.md file typically provides information
-    // on how to run the tests for the project.
     {
         type: 'input',
-        name: 'questions',
-        message: 'Have a question?',
+        name: 'test',
+        message: 'Tests:',
     },
 ];
 
@@ -149,13 +133,6 @@ function init() {
         )
         .then((answers) => {
             nonRepeatingAnswers1 = answers;
-            console.log(nonRepeatingAnswers1);
-
-            return askTableOfContents();
-
-            //originally did not have a return in front of function call
-            // and therefore was not waiting for the promise to be completed.
-            // Use user feedback for... whatever!!
         })
         .then(() => {
             return askPrerequisite();
@@ -168,14 +145,27 @@ function init() {
         })
         .then((answers) => {
             nonRepeatingAnswers2 = answers;
+
+            return inquirer.prompt({
+                type: 'input',
+                name: 'gitHubUserName',
+                message: 'What is your github user name?',
+            });
+        })
+        .then((answer) => {
+            gitHubLink = `https://github.com/${answer.gitHubUserName}`;
         })
         .then(() => {
+            console.log('After gitHubProfileLink, and link is: ', gitHubLink);
             // I was attempting to combine all non-function-questions into one called
-            // nonRepeatingAnswersAll, here is code below. However, did not work.
+            // nonRepeatingAnswersAll, here is code below.
+
+            // nonRepeatingAnswersAll = (...nonRepeatingAnswers1, ...nonRepeatingAnswers2)
+
+            // However, did not work.
             // Reason: spread operator is used to unpack elements from "an array or object".
             //Not what I wanted, In this case I wanted to combine "all" key/value pairs from
             // both objects.
-            // nonRepeatingAnswersAll = (...nonRepeatingAnswers1, ...nonRepeatingAnswers2)
 
             //To add two objects together into one the ".assign" must be used and if there are two values with same key,
             // the second value will overwrite the first. *In the below case there are two objects, each with their own key/value pairs, are
@@ -187,29 +177,20 @@ function init() {
                     nonRepeatingAnswers1,
                     nonRepeatingAnswers2
                 ),
-                prerequisites,
+                installationPrerequisites,
                 packagesNeededForApp,
-                tableOfContents,
+                gitHubLink,
             };
-
-            // let prerequisites = [];
-            // let packagesNeededForApp = [];
-            // let tableOfContents = [];
-
-            // let nonRepeatingAnswers1 = [];
-            // let nonRepeatingAnswers2 = [];
         })
         .then((data) => {
+            console.log('Here is the data >>>>>>>>>>', data);
             return generateMarkdown(data);
+        })
+        .then((data) => {
+            // TODO: Create a function to write README file
+            writeToReadmeMD(data);
         });
 }
-
-// TODO: Create a function to write README file
-const writeToReadmeMD = (data) => {
-    fs.writeFile('readme.md', data, (err) => {
-        err ? console.error(err) : console.log('Success!!! , Log created!');
-    });
-};
 
 // Function call to initialize app
 init();
